@@ -25,6 +25,44 @@ class RestaurantsCrawler < SeleniumHelper
       #popular_store = execute_script('document.querySelectorAll("div.EZdmt a")')#各投稿に遷移する時はこのaタグ
       post_data = execute_script("window._sharedData")
       post_data_json = Json.parse(post_data)
+      sections = post_data_json.dig("entry_data", "TagPage", "0", "data", "top", "sections")
+      sections.each do |section|
+        medias = sections.dig("layout_content", "medias")
+        medias.each do |media|
+          media_parser(media, station)
+        end
+      end
+    end
+  end
+
+  def media_parser(media, station)
+    detail_post_code = media["code"]#https://www.instagram.com/p/#{detail_post_code}/で詳細ページ
+    store_location = media["location"]
+
+    address = store_location["address"]
+    city = store_location["city"]
+    external_source = store_location["external_source"]
+    facebook_places_id = store_location["facebook_places_id"]
+    lat = store_location["lat"]#東京か判定に使用
+    lng = store_location["lng"]#東京か判定に使用
+    name = store_location["name"]
+    pk = store_location["pk"]#https://www.instagram.com/explore/locations/#{pk}/でお店の投稿一覧
+    short_name = store_location["short_name"]
+
+    #TopRestaurantテーブルを作成する必要あり
+    TopRestaurant.create_or_update({
+      :name => name,
+      :short_name => short_name,
+      :store_posts_url => "https://www.instagram.com/explore/locations/#{pk}/",
+      :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
+      :station => station,
+      :address => address,
+      :city => city,
+      :external_source => external_source,
+      :facebook_places_id => facebook_places_id,
+      :lat => lat,
+      :lng => lng,
+    })
   end
 end
 

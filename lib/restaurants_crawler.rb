@@ -9,6 +9,8 @@ class RestaurantsCrawler < SeleniumHelper
   def login_instagram()
     insta_url = "https://www.instagram.com/"
     navigate_to(insta_url)
+    crawl_test()
+    #画面読み込み(仕様未定)
     user_name = ENV["INSTA_NAME"]
     pass_word = ENV["INSTA_PASS"]
     send_value('input[name="username"]', user_name)
@@ -51,7 +53,7 @@ class RestaurantsCrawler < SeleniumHelper
 
     #TopRestaurantテーブルを作成する必要あり
     TopRestaurant.create_or_update({
-      :name => name,
+      :restaurant_name => name,
       :short_name => short_name,
       :store_posts_url => "https://www.instagram.com/explore/locations/#{pk}/",
       :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
@@ -63,6 +65,15 @@ class RestaurantsCrawler < SeleniumHelper
       :lat => lat,
       :lng => lng,
     })
+  end
+
+  def crawl_test()
+    url = "https://www.waseda.jp/top/"
+    navigate_to(url)
+    
+    p 0
+    sleep 10
+    exit
   end
 end
 

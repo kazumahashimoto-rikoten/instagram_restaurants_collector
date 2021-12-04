@@ -15,9 +15,10 @@ class RestaurantsCrawler < SeleniumHelper
     raise unless css_exist?("input[aria-label]")
     user_name = ENV["INSTA_NAME"]
     pass_word = ENV["INSTA_PASS"]
-    send_value('input[name="username"]', user_name)
-    send_value('input[name="password"]', pass_word)
-    query_click("button[type='submit']")
+    @session.find_element(:css, "input[name='username']").send_keys(user_name)
+    @session.find_element(:css, "input[name='password']").send_keys(pass_word)
+    sleep 10
+    elements_click("button[type='submit']")
     #画面読み込み(仕様未定)
     raise unless css_exist?("input[aria-label]")
   end
@@ -29,9 +30,10 @@ class RestaurantsCrawler < SeleniumHelper
       navigate_to("https://www.instagram.com/explore/tags/#{station}ランチ/")
       #画面読み込み(仕様未定)
       raise unless css_exist?(".Saeqz")
+      sleep 15
       #popular_store = execute_script('document.querySelectorAll("div.EZdmt a")')#各投稿に遷移する時はこのaタグ
       post_data = execute_script("window._sharedData")
-      post_data_json = Json.parse(post_data)
+      post_data_json = JSON.parse(post_data)
       sections = post_data_json.dig("entry_data", "TagPage", "0", "data", "top", "sections")
       sections.each do |section|
         medias = sections.dig("layout_content", "medias")
@@ -84,5 +86,5 @@ class RestaurantsCrawler < SeleniumHelper
 end
 
 crawler = RestaurantsCrawler.new
-crawler.login_instagram()
+crawler.login_instagram(false)
 crawler.search_restaurants()

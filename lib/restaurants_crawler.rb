@@ -6,24 +6,29 @@ class RestaurantsCrawler < SeleniumHelper
     super()
   end
 
-  def login_instagram()
+  def login_instagram(test = true)
+    crawl_test() if test == true
     insta_url = "https://www.instagram.com/"
+    sleep 1
     navigate_to(insta_url)
-    crawl_test()
     #画面読み込み(仕様未定)
+    raise unless css_exist?("input[aria-label]")
     user_name = ENV["INSTA_NAME"]
     pass_word = ENV["INSTA_PASS"]
     send_value('input[name="username"]', user_name)
     send_value('input[name="password"]', pass_word)
     query_click("button[type='submit']")
     #画面読み込み(仕様未定)
+    raise unless css_exist?("input[aria-label]")
   end
 
   def search_restaurants()
     stations = ["大崎", "五反田", "目黒", "恵比寿", "渋谷", "原宿", "代々木", "新宿", "新大久保", "高田馬場", "目白", "池袋", "大塚", "巣鴨", "駒込", "田端", "西日暮里", "日暮里", "鶯谷", "上野", "御徒町", "秋葉原", "神田", "東京", "有楽町", "新橋", "浜松町", "田町", "高輪ゲートウェイ", "品川"]
     stations.each do |station|
+      sleep 1
       navigate_to("https://www.instagram.com/explore/tags/#{station}ランチ/")
       #画面読み込み(仕様未定)
+      raise unless css_exist?(".Saeqz")
       #popular_store = execute_script('document.querySelectorAll("div.EZdmt a")')#各投稿に遷移する時はこのaタグ
       post_data = execute_script("window._sharedData")
       post_data_json = Json.parse(post_data)
@@ -69,8 +74,9 @@ class RestaurantsCrawler < SeleniumHelper
 
   def crawl_test()
     url = "https://www.waseda.jp/top/"
+    sleep 1
     navigate_to(url)
-    
+    p css_exist?("title")
     p 0
     sleep 10
     exit

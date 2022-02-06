@@ -1,5 +1,6 @@
 require_relative '../common'
 require_relative '../selenium_helper'
+require 'pry'
 
 class RestaurantsCrawler < SeleniumHelper
   def initialize()
@@ -29,14 +30,13 @@ class RestaurantsCrawler < SeleniumHelper
       sleep 1
       navigate_to("https://www.instagram.com/explore/tags/#{station}ランチ/")
       #画面読み込み(仕様未定)
+      sleep 10
       raise unless css_exist?(".Saeqz")
-      sleep 15
       #popular_store = execute_script('document.querySelectorAll("div.EZdmt a")')#各投稿に遷移する時はこのaタグ
-      post_data = execute_script("window._sharedData")
-      post_data_json = JSON.parse(post_data)
-      sections = post_data_json.dig("entry_data", "TagPage", "0", "data", "top", "sections")
+      post_data = execute_script("return window._sharedData")
+      sections = post_data.dig("entry_data", "TagPage", 0, "data", "top", "sections")
       sections.each do |section|
-        medias = sections.dig("layout_content", "medias")
+        medias = section.dig("layout_content", "medias")
         medias.each do |media|
           media_parser(media, station)
         end
@@ -45,8 +45,8 @@ class RestaurantsCrawler < SeleniumHelper
   end
 
   def media_parser(media, station)
-    detail_post_code = media["code"]#https://www.instagram.com/p/#{detail_post_code}/で詳細ページ
-    store_location = media["location"]
+    detail_post_code = media["media"]["code"]#https://www.instagram.com/p/#{detail_post_code}/で詳細ページ
+    store_location = media["media"]["location"]
 
     address = store_location["address"]
     city = store_location["city"]
@@ -58,20 +58,22 @@ class RestaurantsCrawler < SeleniumHelper
     pk = store_location["pk"]#https://www.instagram.com/explore/locations/#{pk}/でお店の投稿一覧
     short_name = store_location["short_name"]
 
-    #TopRestaurantテーブルを作成する必要あり
-    TopRestaurant.create_or_update({
-      :restaurant_name => name,
-      :short_name => short_name,
-      :store_posts_url => "https://www.instagram.com/explore/locations/#{pk}/",
-      :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
-      :station => station,
-      :address => address,
-      :city => city,
-      :external_source => external_source,
-      :facebook_places_id => facebook_places_id,
-      :lat => lat,
-      :lng => lng,
-    })
+    restaurant = TopRestaurant.find_or_initialize_by(post_url: "https://www.instagram.com/p/#{detail_post_code}/")
+    if restaurant.new_record?
+      restaurant.update({
+        :restaurant_name => name,
+        :short_name => short_name,
+        :store_posts_url => "https://www.instagram.com/explore/locations/#{pk}/",
+        # :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
+        :station => station,
+        :address => address,
+        :city => city,
+        :external_source => external_source,
+        :facebook_places_id => facebook_places_id,
+        :lat => lat,
+        :lng => lng,
+      })
+    end
   end
 
   def crawl_test()
@@ -87,4 +89,5 @@ end
 
 crawler = RestaurantsCrawler.new
 crawler.login_instagram(false)
+sleep 10
 crawler.search_restaurants()

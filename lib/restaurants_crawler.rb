@@ -46,25 +46,25 @@ class RestaurantsCrawler < SeleniumHelper
 
   def media_parser(media, station)
     detail_post_code = media["media"]["code"]#https://www.instagram.com/p/#{detail_post_code}/で詳細ページ
-    store_location = media["media"]["location"]
+    store_location = media.dig("media", "location")
 
-    address = store_location["address"]
-    city = store_location["city"]
-    external_source = store_location["external_source"]
-    facebook_places_id = store_location["facebook_places_id"]
-    lat = store_location["lat"]#東京か判定に使用
-    lng = store_location["lng"]#東京か判定に使用
-    name = store_location["name"]
-    pk = store_location["pk"]#https://www.instagram.com/explore/locations/#{pk}/でお店の投稿一覧
-    short_name = store_location["short_name"]
+    address = store_location&.[]("address")
+    city = store_location&.[]("city")
+    external_source = store_location&.[]("external_source")
+    facebook_places_id = store_location&.[]("facebook_places_id")
+    lat = store_location&.[]("lat")#東京か判定に使用
+    lng = store_location&.[]("lng")#東京か判定に使用
+    name = store_location&.[]("name")
+    pk = store_location&.[]("pk")#https://www.instagram.com/explore/locations/#{pk}/でお店の投稿一覧
+    short_name = store_location&.[]("short_name")
 
-    restaurant = TopRestaurant.find_or_initialize_by(post_url: "https://www.instagram.com/p/#{detail_post_code}/")
+    restaurant = TopRestaurant.find_or_initialize_by(post_code: detail_post_code)
     if restaurant.new_record?
       restaurant.update({
         :restaurant_name => name,
         :short_name => short_name,
         :store_posts_url => "https://www.instagram.com/explore/locations/#{pk}/",
-        # :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
+        :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
         :station => station,
         :address => address,
         :city => city,

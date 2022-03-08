@@ -58,12 +58,15 @@ class RestaurantsCrawler < SeleniumHelper
     pk = store_location&.[]("pk")#https://www.instagram.com/explore/locations/#{pk}/でお店の投稿一覧
     short_name = store_location&.[]("short_name")
 
+    poster_full_name = media.dig("media", "user", "full_name")
+    poster_user_name = media.dig("media", "user", "username")
+
     restaurant = TopRestaurant.find_or_initialize_by(post_code: detail_post_code)
     if restaurant.new_record?
       restaurant.update({
         :restaurant_name => name,
         :short_name => short_name,
-        :store_posts_url => "https://www.instagram.com/explore/locations/#{pk}/",
+        :pk => pk,
         :post_url => "https://www.instagram.com/p/#{detail_post_code}/",
         :station => station,
         :address => address,
@@ -72,6 +75,8 @@ class RestaurantsCrawler < SeleniumHelper
         :facebook_places_id => facebook_places_id,
         :lat => lat,
         :lng => lng,
+        :poster_full_name => poster_full_name,
+        :poster_username => poster_user_name,
       })
     end
   end

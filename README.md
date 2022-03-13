@@ -1,9 +1,9 @@
 # instagram_restaurants_collector
 
-目的
+目的  
 insta restaurants のレストラン情報の収集
 
-方法
+方法  
 "駅名"ランチでハッシュタグ検索し、上位のレストラン情報をパース
 
 環境構築
